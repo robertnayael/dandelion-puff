@@ -1,24 +1,38 @@
-import './style.css'
-import typescriptLogo from './typescript.svg'
-import viteLogo from '/vite.svg'
-import { setupCounter } from './counter.ts'
+import animationLoop from './animationLoop';
+import { dispatch } from './store';
 
-document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
-  <div>
-    <a href="https://vitejs.dev" target="_blank">
-      <img src="${viteLogo}" class="logo" alt="Vite logo" />
-    </a>
-    <a href="https://www.typescriptlang.org/" target="_blank">
-      <img src="${typescriptLogo}" class="logo vanilla" alt="TypeScript logo" />
-    </a>
-    <h1>Vite + TypeScript</h1>
-    <div class="card">
-      <button id="counter" type="button"></button>
-    </div>
-    <p class="read-the-docs">
-      Click on the Vite and TypeScript logos to learn more
-    </p>
-  </div>
-`
+function createHiDPICanvas(width: number, height: number) {
+  const ratio = window.devicePixelRatio;
+  var c = document.createElement('canvas');
+  c.width = width * ratio;
+  c.height = height * ratio;
+  c.style.width = `${width}px`;
+  c.style.height = `${height}px`;
+  c.getContext('2d')?.setTransform(ratio, 0, 0, ratio, 0, 0);
+  return c;
+}
 
-setupCounter(document.querySelector<HTMLButtonElement>('#counter')!)
+dispatch({
+  type: 'initialize',
+  grid: {
+    width: 100,
+    height: 50,
+    cellSize: 10,
+  },
+});
+
+const canvas = createHiDPICanvas(200, 300);
+
+const ctx = canvas.getContext('2d');
+const appContainer = document.querySelector('#app');
+
+if (!appContainer) {
+  throw new Error('Could not find the app container');
+}
+if (!ctx) {
+  throw new Error('Canvas rendering context is not ready yet');
+}
+
+appContainer.appendChild(canvas);
+
+animationLoop(ctx);
