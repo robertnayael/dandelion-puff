@@ -1,3 +1,5 @@
+import { v4 as uuidv4 } from 'uuid';
+
 import './style.css';
 
 import animationLoop from './animationLoop';
@@ -18,16 +20,20 @@ function createHiDPICanvas(width: number, height: number) {
 let WIDTH = window.innerWidth;
 let HEIGHT = window.innerHeight;
 
+// let WIDTH = 400;
+// let HEIGHT = 200;
+
 dispatch({
   type: 'initialize',
   grid: {
     width: WIDTH,
     height: HEIGHT,
-    cellSize: 10,
+    cellSize: 20,
   },
 });
 
 const canvas = createHiDPICanvas(WIDTH, HEIGHT);
+export const offscreenCanvas = createHiDPICanvas(WIDTH, HEIGHT);
 
 const ctx = canvas.getContext('2d');
 const appContainer = document.querySelector('#app');
@@ -43,7 +49,8 @@ appContainer.appendChild(canvas);
 
 animationLoop(ctx);
 
-function getRelativeMousePosition (event: MouseEvent, element: HTMLElement): { x: number, y: number } {
+import { Vector2 } from './linalg';
+function getRelativeMousePosition (event: MouseEvent, element: HTMLElement): Vector2 {
   const ratio = window.devicePixelRatio;
   const rect = element.getBoundingClientRect();
   
@@ -54,26 +61,32 @@ function getRelativeMousePosition (event: MouseEvent, element: HTMLElement): { x
   x = Math.max(0, Math.min(x, canvas.width / ratio));
   y = Math.max(0, Math.min(y, canvas.height / ratio));
 
-  return { x, y };
+  return Vector2.create(x, y);
 }
 
-// TODO: handle touch events
-// TODO: make sure right click doesn't work
-canvas.addEventListener('mousedown', event => {
-  const where = getRelativeMousePosition(event, canvas);
-  dispatch({ type: 'blowStarted', where });
-});
+function setupWindSourceListeners () {
+  let id: string | null = null;
+  // TODO: handle touch events
+  // TODO: make sure right click doesn't work
+  canvas.addEventListener('mousedown', event => {
+    id = uuidv4();
+    const coords = getRelativeMousePosition(event, canvas);
+    dispatch({ type: 'addWindSource', coords, id });
+  });
 
-window.addEventListener('mouseup', event => {
-  const where = getRelativeMousePosition(event, canvas);
-  dispatch({ type: 'blowEnded', where });
-});
+  window.addEventListener('mouseup', () => {
+    if (id) {
+      dispatch({ type: 'removeWindSource', id });
+      id = null;
+    }
+  });
 
-window.addEventListener('mousemove', event => {
-  if (!getState().windBlow) {
-    return;
-  }
-  const where = getRelativeMousePosition(event, canvas);
+  window.addEventListener('mousemove', event => {
+    if (id) {
+      const coords = getRelativeMousePosition(event, canvas);
+      dispatch({ type: 'moveWindSource', coords, id });
+    }
+  });
+}
 
-  dispatch({ type: 'blowEndpointMoved', where });
-});
+setupWindSourceListeners();
