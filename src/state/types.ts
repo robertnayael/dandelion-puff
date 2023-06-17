@@ -1,4 +1,5 @@
 import { SimpleEntity, Vector2, VectorField } from '../linalg';
+import { Trail } from '../linalg/Trail';
 
 export type WindTunnel = {
   from: Vector2;
@@ -16,6 +17,7 @@ export type State = {
   vectorField: VectorField,
   windTunnels: WindTunnel[];
   entities: SimpleEntity[];
+  trails: Trail[];
   debug: Record<string, any>;
 };
 

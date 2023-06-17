@@ -1,6 +1,7 @@
 import { Action, State, WindTunnel } from './types';
 import { SimpleEntity, Vector2, VectorField } from '../linalg';
 import * as selectors from './selectors';
+import { Trail } from '../linalg/Trail';
 
 const initialState: State = {
   initialized: false,
@@ -11,7 +12,10 @@ const initialState: State = {
   },
   vectorField: VectorField.empty(),
   windTunnels: [],
-  entities: Array(500).fill(null).map(() => new SimpleEntity(200 + Math.round(Math.random() * 500), 200 + Math.round(Math.random() * 500))),
+  entities: Array(1).fill(null).map(() => new SimpleEntity(200 + Math.round(Math.random() * 500), 200 + Math.round(Math.random() * 500))),
+  trails: [
+    new Trail(500, 500)
+  ],
   debug: {},
 };
 
@@ -79,18 +83,30 @@ export function reducer(state = initialState, action: Action): State {
 
     case 'nextFrame': {
       if (!state.initialized) return state;
-      const WIND_INCREASE_RATE = 2; // [px/s]
+      const WIND_INCREASE_RATE = 1; // [px/s]
       const windIncreaseRate = WIND_INCREASE_RATE * action.deltaTime / 1000;
       const vectorField = state.vectorField.copy().applyWindTunnels(state.windTunnels, windIncreaseRate);
       const entities = state.entities
         .map(entity => {
           const wind = vectorField.getVectorAtPixelPosition(entity);
           if (wind && !!wind.vector.length) {
-            entity.setAcceleration(wind.vector.copy().multiply(1/5))
+            // entity.setAcceleration(wind.vector.copy().multiply(1/5))
+            entity.setAcceleration(wind.vector.copy().setLength(0.1))
           }
           return entity;
         });
       entities.forEach(e => e.update());
+
+      const trails = state.trails
+      .map(trail => {
+        const wind = vectorField.getVectorAtPixelPosition(trail);
+        if (wind && !!wind.vector.length) {
+          // entity.setAcceleration(wind.vector.copy().multiply(1/5))
+          trail.setAcceleration(wind.vector.copy().setLength(0.1))
+        }
+        return trail;
+      });
+      trails.forEach(e => e.update());
 
       return {
         ...state,
