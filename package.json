@@ -9,10 +9,15 @@
     "preview": "vite preview"
   },
   "devDependencies": {
+    "@types/p5": "^1.6.2",
+    "@types/uuid": "^9.0.1",
     "typescript": "^5.0.2",
     "vite": "^4.3.9"
   },
   "dependencies": {
-    "redux": "^4.2.1"
+    "p5": "^1.6.0",
+    "pixi.js": "^7.2.4",
+    "redux": "^4.2.1",
+    "uuid": "^9.0.0"
   }
 }
